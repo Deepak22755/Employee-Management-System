@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: hrms
+
+  datasource:
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://localhost:5432/hrms}
+    username: ${SUPABASE_DB_USER:postgres}
+    password: ${SUPABASE_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 180000
+      max-lifetime: 240000       
+      keepalive-time: 120000     
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 3000       
+      timeout: 3000
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000       
+
+  security:
+    user:
+      name: ${API_USER:admin}
+      password: ${API_PASSWORD:admin}
+
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+
+
+hrms:
+  attendance:
+    standard-shift-hours: 8
+    max-shift-hours: 16
+    active-worker-ttl-hours: 16
+    monthly-overtime-cap-hours: 60
+  overtime:
+    tier1-hours: 2
+    tier1-multiplier: 1.5
+    tier2-multiplier: 2.0
+  external-api:
+    min-wage-url: ${MIN_WAGE_API_URL:https://api.example.gov/min-wage}
+    connect-timeout: 5000
+    read-timeout: 5000
+
+logging:
+  level:
+    com.deepthought.hrms: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE

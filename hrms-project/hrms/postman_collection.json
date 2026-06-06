@@ -1,0 +1,202 @@
+{
+  "info": {
+    "name": "Construction HRMS API",
+    "description": "Worker Attendance & Overtime Engine — DeepThought Assignment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "admin", "type": "string" },
+      { "key": "password", "value": "admin", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "workerId", "value": "1" },
+    { "key": "siteId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Create Worker",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/workers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ramesh Kumar\",\n  \"phone\": \"9876543210\",\n  \"designation\": \"MASON\",\n  \"dailyWage\": 600.00\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Site",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/sites",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Greenfield Phase 2\",\n  \"location\": \"Whitefield, Bengaluru\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Clock In",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": {{workerId}},\n  \"siteId\": {{siteId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Clock In - Duplicate (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": {{workerId}},\n  \"siteId\": {{siteId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Clock Out",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-out",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": {{workerId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Clock Out - Without Clocking In (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-out",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": {{workerId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Active Workers (from Redis)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/attendance/active"
+          }
+        },
+        {
+          "name": "Get Attendance Log (paginated)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/log?workerId={{workerId}}&from=2026-05-01&to=2026-05-31&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "log"],
+              "query": [
+                { "key": "workerId", "value": "{{workerId}}" },
+                { "key": "from", "value": "2026-05-01" },
+                { "key": "to", "value": "2026-05-31" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Overtime",
+      "item": [
+        {
+          "name": "Get Overtime Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/overtime/summary/{{workerId}}?month=2026-04",
+              "query": [{ "key": "month", "value": "2026-04" }]
+            }
+          }
+        },
+        {
+          "name": "Settle Overtime (past month)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/overtime/settle/{{workerId}}?month=2026-04",
+              "query": [{ "key": "month", "value": "2026-04" }]
+            }
+          }
+        },
+        {
+          "name": "Settle Current Month (expect 400)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/overtime/settle/{{workerId}}?month=2026-06",
+              "query": [{ "key": "month", "value": "2026-06" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Clock In - Inactive Worker (expect 404)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": 9999,\n  \"siteId\": {{siteId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Clock In - Inactive Site (expect 404)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/attendance/clock-in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": {{workerId}},\n  \"siteId\": 9999\n}"
+            }
+          }
+        },
+        {
+          "name": "Invalid Month Format (expect 400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/overtime/summary/{{workerId}}?month=05-2026",
+              "query": [{ "key": "month", "value": "05-2026" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
